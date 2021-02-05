@@ -30,7 +30,7 @@ func responseShortcut(w http.ResponseWriter, statusCode int, responseMessage int
 	response.jsonResponse()
 }
 
-func (s *Store) SetKey(w http.ResponseWriter, r *http.Request) {
+func (s *Store) Set(w http.ResponseWriter, r *http.Request) {
 	var kv KeyValue
 
 	err := json.NewDecoder(r.Body).Decode(&kv)
@@ -45,7 +45,33 @@ func (s *Store) SetKey(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func (s *Store) GetKey(w http.ResponseWriter, r *http.Request) {
+func (s *Store) HSet(w http.ResponseWriter, r *http.Request) {
+	var kv KeyValue
+
+	err := json.NewDecoder(r.Body).Decode(&kv)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	created := s.HSET(kv)
+	responseShortcut(w, http.StatusOK, map[string]interface{}{"created": created})
+}
+
+func (s *Store) MSet(w http.ResponseWriter, r *http.Request) {
+	var kvs []KeyValue
+
+	err := json.NewDecoder(r.Body).Decode(&kvs)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+
+	message := s.MSET(kvs)
+
+	responseShortcut(w, http.StatusOK, map[string]interface{}{"status": message})
+}
+
+func (s *Store) Get(w http.ResponseWriter, r *http.Request) {
 	var kv KeyValue
 	err := json.NewDecoder(r.Body).Decode(&kv)
 	if err != nil {
@@ -55,6 +81,31 @@ func (s *Store) GetKey(w http.ResponseWriter, r *http.Request) {
 
 	value := s.GET(kv.Key)
 	responseShortcut(w, http.StatusOK, map[string]interface{}{"value": value})
+}
+
+func (s *Store) HGet(w http.ResponseWriter, r *http.Request) {
+	var kv KeyValue
+
+	err := json.NewDecoder(r.Body).Decode(&kv)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	value := s.HGET(kv.Key, kv.Field)
+	responseShortcut(w, http.StatusOK, map[string]interface{}{"value": value})
+}
+
+func (s *Store) MGet(w http.ResponseWriter, r *http.Request) {
+	var keys KeysRequestModel
+
+	err := json.NewDecoder(r.Body).Decode(&keys)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+
+	values := s.MGET(keys.Keys)
+	responseShortcut(w, http.StatusOK, map[string]interface{}{"values": values})
 }
 
 func (s *Store) Keys(w http.ResponseWriter, r *http.Request) {
@@ -80,18 +131,5 @@ func (s *Store) Del(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	status := s.DEL(drm.Key)
-	responseShortcut(w, http.StatusOK, map[string]interface{}{"status": status})
-}
-
-func (s *Store) HSet(w http.ResponseWriter, r *http.Request) {
-	var kv KeyValue
-
-	err := json.NewDecoder(r.Body).Decode(&kv)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	status := s.HSET(kv)
 	responseShortcut(w, http.StatusOK, map[string]interface{}{"status": status})
 }
