@@ -4,17 +4,14 @@
   Despite its obvious simplicity, it can be used for some production tasks, for example when you need some temporary storage for saving short living data.
 
   
-## What i have achieved so far
-  <ul> 
-    <li>Basic functionality of server is implemented and tested</li>
-    <li>Client part has been finished, although it needs some improvements</li>
-  </ul>
+
 
 ## List of currently supported commands
   1) [SET](#SET), [HSET](#HSET), [MSET](#MSET) 
   2) [GET](#GET), [HGET](#HGET), [MGET](#MGET)
   3) [KEYS](#KEYS)
   4) [DEL](#DEL)
+  5) [SAVE](#SAVE), [RESTORE](#RESTORE)
 
 
 ## SET
@@ -29,4 +26,108 @@ Or if you want to enable ttl for the given key
   SET key value 120 #Will be deleted after 2 minutes 
 ```
 
+I should note that value acceptance range is limited to 3 types, namely strings, dictionaries, and lists.<br>
+
+```bash
+  SET key {key1:value1} #Associates given key with the provided dictionary value
+```
+
+```bash
+  SET key [value1, value2,value3] #Similarly, associates given key with provided list of values
+```
+
 ## HSET
+
+HSET is similar to SET command -- distinction lies in the fact that now client has to provide field,
+which enables access to the value. Apparently, field is stored in its SHA-256 hash representation.
+
+```bash
+  HSET key field value
+```
+
+##MSET
+MSET allows a client to provide more key-value pairs, here is an example:
+
+```bash
+  MSET key1 value1 key2 value2 key3 value3
+```
+
+##GET
+GET command simply retrieves value associated with the given key.
+
+```bash
+  SET key value
+  # "OK"
+  GET key
+  # value
+```
+
+##HGET
+HGET command provides client with a value only in case if proper key and value were passed:
+
+```bash
+  HSET key field value
+  # "OK"
+  HGET key field
+  # value
+```
+
+##MGET
+MGET returns values for multiple given keys
+
+```bash
+  MSET key1 value1 key2 value2 key3 value3
+  # "OK"
+  MGET key1, key2, key3
+  # 1)value1
+  # 2)value2
+  # 3)value3
+```
+
+##KEYS
+KEYS command returns all keys conforming to given pattern
+
+```bash
+  MSET key1 value1 key2 value2 key3 value3
+  # "OK"
+  KEYS key[1-9]*
+  # 1)key1
+  # 2)key2
+  # 3)key3
+```
+
+##DEL
+DEL command deletes entry containing a given key
+
+```bash
+  SET key value
+  # "OK"
+  KEYS key
+  # "OK"
+```
+
+##SAVE
+SAVE command allows a client to save current contents of key-value store on disk.
+It accepts a single parameter being the path to the file. Command normally handles 
+the case when file does not exist -- it will readily create one.
+
+```bash
+  SAVE store.txt
+  # "OK"
+```
+
+##RESTORE
+RESTORE command restores contents of previously saved store.
+
+```bash
+  RESTORE store.txt
+  # "OK"
+```
+
+## Features yet to be included
+  <ul> 
+    <li>Authorization</li>
+    <li>Enable tokenization, thus strengthen security</li>
+  </ul>
+
+The list defined above is by no means exhaustive nor complete. 

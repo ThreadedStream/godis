@@ -33,33 +33,30 @@ func (c *Client) commandProcessorPipe(command string, args []string) interface{}
 func (c *Client) prettifyStrings(args string) []string {
 	argList := strings.Split(args, " ")
 	//Trim spaces
-	for i := range args {
+	for i := range argList {
 		argList[i] = strings.Trim(argList[i], "\t\n")
 	}
 
 	return argList
 }
 
-func (c *Client) inplacePrepend(str charptr, ch char) {
-	str = append(str, '{')
-
-	for i := 0; i < len(str)-1; i++ {
-		str[i+1] = str[i]
-	}
-}
-
 func (c *Client) prettifyDict(args string) []string {
 	argList := strings.Split(args, "{")
 
 	//Trim space in key
-	argList[0] = strings.Trim(argList[0], "\t")
-	c.inplacePrepend(charptr(argList[1]), '{')
+	argList[0] = strings.Trim(argList[0], "\t\n")
+	argList[0] = strings.TrimSpace(argList[0])
+	argList[1] = "{" + argList[1]
 
 	return argList
 }
 
 func (c *Client) prettifyList(args string) []string {
 	argList := strings.Split(args, "[")
+
+	argList[0] = strings.Trim(argList[0], "\t\n")
+	argList[0] = strings.TrimSpace(argList[0])
+	argList[1] = "[" + argList[1]
 
 	return argList
 }
@@ -92,6 +89,8 @@ func (c *Client) activateVisualPipe() {
 			argList = c.prettifyStrings(args)
 		} else if strings.Index(args, "{") != -1 {
 			argList = c.prettifyDict(args)
+		} else {
+			argList = c.prettifyList(args)
 		}
 
 		result := c.commandProcessorPipe(command, argList)
