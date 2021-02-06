@@ -14,9 +14,11 @@ type ResponseEntities struct {
 	Value   string   `json:"value"`
 	Values  []string `json:"values"`
 	Created int      `json:"created"`
+	Store   []byte   `json:"store"`
 }
 
-type KeysRequestModel struct {
+type RequestModel struct {
+	Store   []byte   `json:"store"`
 	Pattern string   `json:"pattern"`
 	Keys    []string `json:"keys"`
 }

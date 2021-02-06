@@ -97,7 +97,7 @@ func (s *Store) HGet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Store) MGet(w http.ResponseWriter, r *http.Request) {
-	var keys KeysRequestModel
+	var keys RequestModel
 
 	err := json.NewDecoder(r.Body).Decode(&keys)
 	if err != nil {
@@ -109,7 +109,7 @@ func (s *Store) MGet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Store) Keys(w http.ResponseWriter, r *http.Request) {
-	var krm KeysRequestModel
+	var krm RequestModel
 
 	err := json.NewDecoder(r.Body).Decode(&krm)
 	if err != nil {
@@ -132,4 +132,26 @@ func (s *Store) Del(w http.ResponseWriter, r *http.Request) {
 	}
 	status := s.DEL(drm.Key)
 	responseShortcut(w, http.StatusOK, map[string]interface{}{"status": status})
+}
+
+func (s *Store) SerializedStore(w http.ResponseWriter, r *http.Request) {
+	result := s.serializeStore()
+	responseShortcut(w, http.StatusOK, map[string]interface{}{"store": result})
+}
+
+func (s *Store) Restore(w http.ResponseWriter, r *http.Request) {
+	var rm RequestModel
+
+	err := json.NewDecoder(r.Body).Decode(&rm)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = json.Unmarshal(rm.Store, &s.Dict)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+
+	responseShortcut(w, http.StatusOK, map[string]interface{}{"status": "OK"})
 }

@@ -43,6 +43,8 @@ func (a *App) initRoutes() {
 	a.Router.Path("/mget").HandlerFunc(a.Store.MGet).Methods("GET")
 	a.Router.Path("/keys").HandlerFunc(a.Store.Keys).Methods("GET")
 	a.Router.Path("/del").HandlerFunc(a.Store.Del).Methods("DELETE")
+	a.Router.Path("/save").HandlerFunc(a.Store.SerializedStore).Methods("GET")
+	a.Router.Path("/restore").HandlerFunc(a.Store.Restore).Methods("POST")
 }
 
 func (a *App) serverListenAndServe() {

@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 )
 
@@ -32,6 +33,10 @@ func (p *Parser) parseCommand(command string, args []string) interface{} {
 		result = p.parseHGET(args)
 	case "DEL":
 		result = p.parseDEL(args[0])
+	case "SAVE":
+		result = p.parseSAVE(args[0])
+	case "RESTORE":
+		result = p.parseRESTORE(args[0])
 	default:
 		result = "Unknown operation\n"
 	}
@@ -40,10 +45,17 @@ func (p *Parser) parseCommand(command string, args []string) interface{} {
 
 func makeJsonRequest(client *http.Client, url string, method string, params interface{}) *http.Response {
 
-	jsonStr, err := json.Marshal(params)
-	if err != nil {
-		log.Println(err)
-		return nil
+	var jsonStr []byte
+	var err error
+	bs, ok := params.([]byte)
+	if !ok {
+		jsonStr, err = json.Marshal(params)
+		if err != nil {
+			log.Println(err)
+			return nil
+		}
+	} else {
+		jsonStr = bs
 	}
 
 	request, err := http.NewRequest(method, url, bytes.NewBuffer(jsonStr))
@@ -206,6 +218,75 @@ func (p *Parser) parseGET(arg string) interface{} {
 	return responseEntities.Value
 }
 
+/*
+	Saves all contents to disk. Expects a path to the file
+*/
+func (p *Parser) parseSAVE(arg string) string {
+	var file *os.File
+	var err error
+	file, err = os.OpenFile(arg, os.O_RDWR|os.O_CREATE|os.O_TRUNC, os.ModePerm)
+	if err != nil {
+		return err.Error()
+	}
+	defer file.Close()
+
+	url := "http://0.0.0.0:5680/save"
+	method := "GET"
+	params := map[string]interface{}{}
+
+	response := makeJsonRequest(p.client, url, method, params)
+
+	//var responseEntities ResponseEntities
+	bs, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return err.Error()
+	}
+
+	_, err = file.Write(bs)
+	if err != nil {
+		return err.Error()
+	}
+
+	return "OK"
+}
+
+/*
+	Restores previously saved store.
+*/
+func (p *Parser) parseRESTORE(arg string) string {
+	var bs []byte
+	file, err := os.OpenFile(arg, os.O_RDONLY, os.ModePerm)
+	if err != nil {
+		return err.Error()
+	}
+
+	defer file.Close()
+
+	bs, err = ioutil.ReadAll(file)
+	if err != nil {
+		return err.Error()
+	}
+
+	url := "http://0.0.0.0:5680/restore"
+	method := "POST"
+
+	response := makeJsonRequest(p.client, url, method, bs)
+	defer response.Body.Close()
+
+	bs, err = ioutil.ReadAll(response.Body)
+	if err != nil {
+		return err.Error()
+	}
+	var responseEntities ResponseEntities
+
+	err = json.Unmarshal(bs, &responseEntities)
+	if err != nil {
+		return err.Error()
+	}
+
+	return responseEntities.Status
+}
+
 func (p *Parser) parseHGET(args []string) interface{} {
 	if len(args)%2 != 0 {
 		return "Length of args should be divisible 2"
@@ -239,6 +320,7 @@ func (p *Parser) parseDEL(arg string) interface{} {
 	params := map[string]interface{}{
 		"key": arg,
 	}
+
 	url := "http://0.0.0.0:5680/del"
 	method := "DELETE"
 
@@ -257,7 +339,6 @@ func (p *Parser) parseDEL(arg string) interface{} {
 	}
 
 	return responseEntities.Status
-
 }
 
 //Arg signifies pattern
