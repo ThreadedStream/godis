@@ -45,14 +45,14 @@ which enables access to the value. Apparently, field is stored in its SHA-256 ha
   HSET key field value
 ```
 
-##MSET
+## MSET
 MSET allows a client to provide more key-value pairs, here is an example:
 
 ```bash
   MSET key1 value1 key2 value2 key3 value3
 ```
 
-##GET
+## GET
 GET command simply retrieves value associated with the given key.
 
 ```bash
@@ -62,7 +62,7 @@ GET command simply retrieves value associated with the given key.
   # value
 ```
 
-##HGET
+## HGET
 HGET command provides client with a value only in case if proper key and value were passed:
 
 ```bash
@@ -72,7 +72,7 @@ HGET command provides client with a value only in case if proper key and value w
   # value
 ```
 
-##MGET
+## MGET
 MGET returns values for multiple given keys
 
 ```bash
@@ -84,7 +84,7 @@ MGET returns values for multiple given keys
   # 3)value3
 ```
 
-##KEYS
+## KEYS
 KEYS command returns all keys conforming to given pattern
 
 ```bash
@@ -96,7 +96,7 @@ KEYS command returns all keys conforming to given pattern
   # 3)key3
 ```
 
-##DEL
+## DEL
 DEL command deletes entry containing a given key
 
 ```bash
@@ -106,7 +106,7 @@ DEL command deletes entry containing a given key
   # "OK"
 ```
 
-##SAVE
+## SAVE
 SAVE command allows a client to save current contents of key-value store on disk.
 It accepts a single parameter being the path to the file. Command normally handles 
 the case when file does not exist -- it will readily create one.
@@ -116,7 +116,7 @@ the case when file does not exist -- it will readily create one.
   # "OK"
 ```
 
-##RESTORE
+## RESTORE
 RESTORE command restores contents of previously saved store.
 
 ```bash
