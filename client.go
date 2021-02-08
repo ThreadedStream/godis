@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"strings"
@@ -91,8 +92,13 @@ func (c *Client) activateVisualPipe() {
 		fmt.Print("godis>")
 		args, err = in.ReadString('\n')
 		if err != nil {
-			fmt.Println(err.Error())
+			if err == io.EOF {
+				continue
+			} else {
+				fmt.Println(err.Error())
+			}
 		}
+
 		command, args = c.getCommandAndArgs(args)
 		command = strings.TrimSpace(command)
 		//Prettify only in case when arguments are strings

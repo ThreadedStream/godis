@@ -12,6 +12,7 @@
   3) [KEYS](#KEYS)
   4) [DEL](#DEL)
   5) [SAVE](#SAVE), [RESTORE](#RESTORE)
+  6) [SIGNUP](#SIGNUP), [LOGIN](#LOGIN), [LOGOUT](#LOGOUT), [WHOAMI](#WHOAMI)
 
 
 ## SET
@@ -124,10 +125,59 @@ RESTORE command restores contents of previously saved store.
   # "OK"
 ```
 
-## Features yet to be included
-  <ul> 
-    <li>Authorization</li>
-    <li>Enable tokenization, thus strengthen security</li>
-  </ul>
+## SIGNUP
+SIGNUP command allows you to save your credentials in database
+```bash
+  SIGNUP user password
+  # "OK"
+```
+As a side note, all passwords are being hashed using sha-256 before being put into database.
 
-The list defined above is by no means exhaustive nor complete. 
+## LOGIN
+LOGIN command allows you to login into godis app using previously stored credentials
+```bash
+  SIGNUP user password
+  # "OK"
+  LOGIN user password
+  # "OK"
+```
+
+## LOGOUT
+LOGOUT command simply logs user out of godis
+```bash
+  LOGOUT 
+  # "OK"
+```
+
+## WHOAMI
+WHOAMI command spits out user's username. So putting it all together yields the following:
+```bash
+  
+  SIGNUP user password
+  # "OK"
+  LOGIN user password
+  # "OK"
+  WHOAMI
+  # user
+  LOGOUT 
+  # "OK"
+  WHOAMI
+  # "anonymous"
+```
+
+
+## How does it all work
+Godis' architecture is very simple. The client and server are running on one machine, since 
+they are a part of a single application (they are going to be decoupled soon). At first, application attempts to run a server, 
+if it succeeds, then database initialization comes right after it.
+Finally, once all needed components are up and running, app will trigger execution of a client pipe(fancy name for single component)
+,which welcomes user with a message "You may start typing some commands". 
+
+## Some notes for future self
+
+The whole architecture design should be refactored. The first and foremost is to 
+decouple client and server, in order for them to be independent components.
+
+After accomplishing the latter, I should make an attempt to dockerize application, since
+now it's pretty wonky, by virtue of the fact that docker's passing a lot of EOFs when client starts, and 
+the whole application stops reacting to user input. 
