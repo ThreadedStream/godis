@@ -179,5 +179,5 @@ The whole architecture design should be refactored. The first and foremost is to
 decouple client and server, in order for them to be independent components.
 
 After accomplishing the latter, I should make an attempt to dockerize application, since
-now it's pretty wonky, by virtue of the fact that docker's passing a lot of EOFs when client starts, and 
+now it ends up being pretty wonky, by virtue of the fact that docker's passing a lot of EOFs when client starts, and 
 the whole application stops reacting to user input. 
