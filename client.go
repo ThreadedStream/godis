@@ -87,7 +87,7 @@ func (c *Client) activateVisualPipe() {
 	var argList []string
 	var err error
 	in := bufio.NewReader(os.Stdin)
-	fmt.Println("You may start typing some commands")
+	fmt.Println("You may start typing some commands. Press q to quit")
 	for {
 		fmt.Print("godis>")
 		args, err = in.ReadString('\n')

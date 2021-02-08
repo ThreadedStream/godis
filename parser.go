@@ -46,6 +46,8 @@ func (p *Parser) parseCommand(command string, args []string) interface{} {
 		result = p.parseLOGOUT()
 	case "WHOAMI":
 		result = p.parseWHOAMI()
+	case "q":
+		p.parseQuit()
 	default:
 		result = "Unknown operation\n"
 	}
@@ -129,6 +131,10 @@ func (p *Parser) parseSET(args []string) string {
 	}
 
 	return responseEntities.Status
+}
+
+func (p *Parser) parseQuit() {
+	os.Exit(1)
 }
 
 func (p *Parser) parseMSET(args []string) string {
