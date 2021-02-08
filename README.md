@@ -173,6 +173,16 @@ if it succeeds, then database initialization comes right after it.
 Finally, once all needed components are up and running, app will trigger execution of a client pipe(fancy name for single component)
 ,which welcomes user with a message "You may start typing some commands". 
 
+## How to run it
+I've created a bash script named run.sh, which exports needed variables and runs an application.
+Script accepts 5 parameters, namely POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB, POSTGRES_HOST, and POSTGRES_PORT.
+Here's a template
+```bash
+  source run.sh <POSTGRES_USER> <POSTGRES_PASSWORD> <POSTGRES_DB> <POSTGRES_HOST> <POSTGRES_PORT>
+```
+
+That's actually it!
+
 ## Some notes for future self
 
 The whole architecture design should be refactored. The first and foremost is to 
