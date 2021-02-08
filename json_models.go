@@ -26,3 +26,8 @@ type RequestModel struct {
 type DelRequestModel struct {
 	Key string `json:"key"`
 }
+
+type UserModel struct {
+	Username string   `json:"username"`
+	Password [32]byte `json:"password"`
+}

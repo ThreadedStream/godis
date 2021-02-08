@@ -8,21 +8,21 @@ import (
 	"strings"
 )
 
-const (
-	connType = "tcp"
-	host     = "0.0.0.0:23"
-)
-
-type charptr = []byte
-type char = byte
+type UserCache struct {
+	username string
+	//Some additional information may be added
+}
 
 type Client struct {
-	parser *Parser
+	parser Parser
+	user   UserCache
 }
 
 func (c *Client) initParserPipe() {
-	c.parser = &Parser{}
+	c.parser = Parser{}
+	c.user.username = "anonymous"
 	c.parser.initParserPipe()
+
 }
 
 func (c *Client) commandProcessorPipe(command string, args []string) interface{} {
@@ -63,6 +63,23 @@ func (c *Client) prettifyList(args string) []string {
 
 //key {'key' : 'value'}
 
+func (c *Client) getCommandAndArgs(str string) (string, string) {
+	currIndex := 0
+	var command string
+
+	//Extracting command
+	for str[currIndex] != ' ' && str[currIndex] != '\n' {
+		command += fmt.Sprintf("%c", str[currIndex])
+		currIndex++
+	}
+	if str[currIndex] != '\n' {
+		currIndex++
+		return command, fmt.Sprintf("%s", str[currIndex:len(str)])
+	}
+	return command, ""
+
+}
+
 func (c *Client) activateVisualPipe() {
 	var command string
 	var args string
@@ -72,24 +89,18 @@ func (c *Client) activateVisualPipe() {
 	fmt.Println("You may start typing some commands")
 	for {
 		fmt.Print("godis>")
-		command, err = in.ReadString(' ')
-		if err != nil {
-			log.Println(err)
-			return
-		}
 		args, err = in.ReadString('\n')
 		if err != nil {
-			log.Println(err)
-			return
+			fmt.Println(err.Error())
 		}
-
+		command, args = c.getCommandAndArgs(args)
 		command = strings.TrimSpace(command)
 		//Prettify only in case when arguments are strings
-		if strings.IndexAny(args, "{}[]") == -1 {
+		if strings.IndexAny(args, "{}[]") == -1 && args != "" {
 			argList = c.prettifyStrings(args)
 		} else if strings.Index(args, "{") != -1 {
 			argList = c.prettifyDict(args)
-		} else {
+		} else if strings.Index(args, "[") != -1 {
 			argList = c.prettifyList(args)
 		}
 

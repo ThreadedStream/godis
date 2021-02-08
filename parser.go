@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -37,6 +38,14 @@ func (p *Parser) parseCommand(command string, args []string) interface{} {
 		result = p.parseSAVE(args[0])
 	case "RESTORE":
 		result = p.parseRESTORE(args[0])
+	case "LOGIN":
+		result = p.parseLOGIN(args[0], args[1])
+	case "SIGNUP":
+		result = p.parseSIGNUP(args[0], args[1])
+	case "LOGOUT":
+		result = p.parseLOGOUT()
+	case "WHOAMI":
+		result = p.parseWHOAMI()
 	default:
 		result = "Unknown operation\n"
 	}
@@ -365,6 +374,83 @@ func (p *Parser) parseKEYS(arg string) interface{} {
 		return err.Error()
 	}
 	return p.prettifyKeysResponse(responseEntities.Keys)
+}
+
+func (p *Parser) parseSIGNUP(username string, password string) string {
+	params := map[string]interface{}{
+		"username": username,
+		"password": sha256.Sum256([]byte(password)),
+	}
+
+	url := "http://0.0.0.0:5680/signup"
+
+	method := "POST"
+
+	response := makeJsonRequest(p.client, url, method, params)
+
+	var responseEntities ResponseEntities
+
+	bs, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return err.Error()
+	}
+
+	err = json.Unmarshal(bs, &responseEntities)
+	if err != nil {
+		return err.Error()
+	}
+
+	a.Client.user.username = username
+
+	return responseEntities.Status
+}
+
+func (p *Parser) parseLOGIN(username string, password string) string {
+
+	params := map[string]interface{}{
+		"username": username,
+		"password": sha256.Sum256([]byte(password)),
+	}
+
+	url := "http://0.0.0.0:5680/login"
+	method := "POST"
+
+	response := makeJsonRequest(p.client, url, method, params)
+	defer response.Body.Close()
+
+	var responseEntities ResponseEntities
+
+	bs, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return err.Error()
+	}
+
+	err = json.Unmarshal(bs, &responseEntities)
+	if err != nil {
+		return err.Error()
+	}
+	var count int
+	count, err = strconv.Atoi(responseEntities.Status)
+	if err != nil {
+		return err.Error()
+	}
+
+	//Naive check against presence of user's credentials in database
+	if count != 0 {
+		a.Client.user.username = username
+		return "OK"
+	} else {
+		return "Such user does not exist"
+	}
+}
+
+func (p *Parser) parseWHOAMI() string {
+	return a.Client.user.username
+}
+
+func (p *Parser) parseLOGOUT() string {
+	a.Client.user.username = "anonymous"
+	return "OK"
 }
 
 func (p *Parser) prettifyKeysResponse(keys []string) string {

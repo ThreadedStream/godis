@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 )
@@ -154,4 +155,38 @@ func (s *Store) Restore(w http.ResponseWriter, r *http.Request) {
 	}
 
 	responseShortcut(w, http.StatusOK, map[string]interface{}{"status": "OK"})
+}
+
+func (s *Store) saveUser(w http.ResponseWriter, r *http.Request) {
+	var um UserModel
+
+	err := json.NewDecoder(r.Body).Decode(&um)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+	err = a.saveUserToDatabase(um.Username, um.Password)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+	responseShortcut(w, http.StatusOK, map[string]interface{}{"status": "OK"})
+}
+
+func (s *Store) login(w http.ResponseWriter, r *http.Request) {
+	var um UserModel
+	var count int
+	err := json.NewDecoder(r.Body).Decode(&um)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	count, err = a.retrieveUserFromDatabase(um.Username, um.Password)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	responseShortcut(w, http.StatusOK, map[string]interface{}{"status": fmt.Sprintf("%d", count)})
 }
